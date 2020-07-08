@@ -1,0 +1,10 @@
+D:\Дима\Программы\CRMguru\CountiesDB\bin\Debug\CountiesDB.exe.config
+D:\Дима\Программы\CRMguru\CountiesDB\bin\Debug\CountiesDB.exe
+D:\Дима\Программы\CRMguru\CountiesDB\bin\Debug\CountiesDB.pdb
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.csprojAssemblyReference.cache
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.Form1.resources
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.Properties.Resources.resources
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.csproj.GenerateResource.cache
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.csproj.CoreCompileInputs.cache
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.exe
+D:\Дима\Программы\CRMguru\CountiesDB\obj\Debug\CountiesDB.pdb
