@@ -8,3 +8,16 @@ D:\Дима\Программы\CRMguru\CountiesDB\obj\Release\CountiesDB.csproj.
 D:\Дима\Программы\CRMguru\CountiesDB\obj\Release\CountiesDB.exe
 D:\Дима\Программы\CRMguru\CountiesDB\obj\Release\CountiesDB.pdb
 D:\Дима\Программы\CRMguru\CountiesDB\obj\Release\CountiesDB.csprojAssemblyReference.cache
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\bin\Release\CountiesDB.exe.config
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\bin\Release\CountiesDB.exe
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\bin\Release\CountiesDB.pdb
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\bin\Release\Newtonsoft.Json.dll
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\bin\Release\Newtonsoft.Json.xml
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.csprojAssemblyReference.cache
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.Form1.resources
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.Properties.Resources.resources
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.csproj.GenerateResource.cache
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.csproj.CoreCompileInputs.cache
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.csproj.CopyComplete
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.exe
+D:\Дима\Программы\Github\Country_info_with_DB\CountiesDB\obj\Release\CountiesDB.pdb

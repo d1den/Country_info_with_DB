@@ -1,10 +1,8 @@
-﻿using System;
+﻿using CountiesDB.Model;
+using CountiesDB.Repositories;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,33 +10,31 @@ namespace CountiesDB
 {
     public partial class Form1 : Form
     {
+        WorkWithApi api = new WorkWithApi();
         public Form1()
         {
             InitializeComponent();
-            // Выводим на в раздел настроек значения по умолчанию
-            textBox1.Text = WorkWithDB.Server;
-            textBox2.Text = WorkWithDB.DataBase;
-            textBox3.Text = WorkWithDB.City;
-            textBox4.Text = WorkWithDB.Region;
-            textBox5.Text = WorkWithDB.Country;
-            // Устанавливаем изначально вывод всех стран
-            radioButton1.Checked = true;
-            // Настраиваем таблицы
-            TableConfig(dataGridView1);
-            TableConfig(dataGridView2);
-            // Дополнительная настройка второй таблицы
-            dataGridView2.ColumnCount = 6;
-            dataGridView2.RowCount = 1;
-            dataGridView2.Columns[0].Name = "Название";
-            dataGridView2.Columns[1].Name = "Код_страны";
-            dataGridView2.Columns[2].Name = "Столица";
-            dataGridView2.Columns[3].Name = "Площадь";
-            dataGridView2.Columns[4].Name = "Население";
-            dataGridView2.Columns[5].Name = "Регион";
-            dataGridView2.Height = dataGridView2.ColumnHeadersHeight + dataGridView2.Rows[0].Height;
-            dataGridView2.ReadOnly = false;
+            // Выводим на раздел настроек значения по умолчанию
+            tbConfigServ.Text = WorkWithDB.Server;
+            tbConfigBd.Text = WorkWithDB.DataBase;
+            rbSecWin.Checked = true;
+            tbConfigUserId.ReadOnly = true;
+            tbConfigPassword.ReadOnly = true;
 
-            richTextBox1.Text = "В данном приложении реализована работа с базой данных, хранящий основную информаци о странах.\n\n" +
+            // Устанавливаем изначально вывод всех стран
+            rbGetAllDb.Checked = true;
+            rbGetAllApi.Checked = true;
+            // Настраиваем таблицы
+            TableConfig(tableGetDb);
+            TableConfig(tableAddDb);
+            TableConfig(tableGetApi);
+            AnotherTableConfig(tableGetApi);
+            AnotherTableConfig(tableAddDb);
+            tableAddDb.RowCount = 1;
+            tableAddDb.Height = tableAddDb.ColumnHeadersHeight + tableAddDb.Rows[0].Height;
+            tableAddDb.ReadOnly = false;
+
+            rtbHelp.Text = "В данном приложении реализована работа с базой данных, хранящий основную информаци о странах.\n\n" +
                 "Для настройки подключения используйте пункт 'Подключение к БД'," +
                 " в ктором можно указать имя сервера, бд и таблиц, а также просмотреть, устанавливается соединение с БД. " +
                 "Изначально подключение уже настроено для работы с разработанной БД, однако, если используется БД с другим названием, то " +
@@ -48,117 +44,120 @@ namespace CountiesDB
                 "Добавление страны происходит в разделе 'Добавить запись', где необходимо ввести все параметры страны (площадь - вещественной число, население - целое) " +
                 "после чего нажать клавишу добавить. Если такая страна уже есть, то её данные обновятся.\n\n\n" +
                 "Разработчик: Денисов Дмитрий Сергеевич.";
-            // Проверяем соединение
-            if (WorkWithDB.TryConnection())
+            ConnectionStatus();
+        }
+
+        private async void ConnectionStatus()
+        {
+            if (await Task.Run(() => WorkWithDB.TryConnection()))
             {
-                label6.Text = "Статус соединения: доступно";
+                lbStatus.Text = "Статус соединения: доступно";
             }
             else
             {
-                label6.Text = "Статус соединения: недоступно";
+                lbStatus.Text = "Статус соединения: недоступно";
             }
         }
 
-        /// <summary>
-        /// Метод настройки параметров таблицы DataGridView
-        /// </summary>
-        /// <param name="table">Принимает объект таблицы</param>
         private void TableConfig(DataGridView table)
         {
             table.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            table.AllowUserToResizeColumns = false;
+            table.AllowUserToResizeColumns = true;
             table.AllowUserToResizeRows = false;
             table.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             table.AllowUserToAddRows = false;
             table.AllowUserToDeleteRows = false;
             table.ReadOnly = true;
             table.RowHeadersVisible = false;
-            table.ColumnHeadersVisible = true; // Индексы столбцов видны
+            table.ColumnHeadersVisible = true;
         }
 
-        // Клавиша - применить настройки к соединению с БД
+        private void AnotherTableConfig(DataGridView table)
+        {
+            table.ColumnCount = 6;
+            table.Columns[0].Name = "Название";
+            table.Columns[1].Name = "Код_страны";
+            table.Columns[2].Name = "Столица";
+            table.Columns[3].Name = "Площадь";
+            table.Columns[4].Name = "Население";
+            table.Columns[5].Name = "Регион";
+        }
+
+        /// <returns>Вовзращает выбранную кнопку</returns>
+        private DialogResult MessageYesNo(string message)
+        {
+            return MessageBox.Show(
+                    message,
+                    "Сообщение",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information,
+                    MessageBoxDefaultButton.Button1);
+        }
+
+        // Кнопка - применить настройки к соединению с БД
         private void button1_Click(object sender, EventArgs e)
         {
-            // Если пользователь изменил настройки, то записываем их в класс работы с БД
-            WorkWithDB.Server = textBox1.Text;
-            WorkWithDB.DataBase = textBox2.Text;
-            WorkWithDB.City = textBox3.Text;
-            WorkWithDB.Region = textBox4.Text;
-            WorkWithDB.Country = textBox5.Text;
-            // Проверяем соединение
-            if (WorkWithDB.TryConnection())
+            if (rbSecWin.Checked)
             {
-                label6.Text = "Статус соединения: доступно";
+                WorkWithDB.UpdateConnection(tbConfigServ.Text, tbConfigBd.Text, "True");
             }
             else
             {
-                label6.Text = "Статус соединения: недоступно";
+                WorkWithDB.UpdateConnection(tbConfigServ.Text, tbConfigBd.Text, "False", tbConfigUserId.Text, tbConfigPassword.Text);
             }
+            ConnectionStatus();
         }
 
-        // Выполнить вывод данных из БД
+        // Ryjgrf - выполнить вывод данных из БД
         private void button2_Click(object sender, EventArgs e)
         {
-            DataSet ds; // Создаём объект данных
-            if (radioButton1.Checked) // Если вывести все страны
+            DataSet ds;
+            if (rbGetAllDb.Checked)
             {
-                ds = WorkWithDB.GetCountries(); // Помещаем туда полученные с БД данные
-                if (ds.Tables[0].Rows.Count == 0) // Если нет стран
+                ds = WorkWithDB.GetAllCountries();
+                if (ds.Tables[0].Rows.Count == 0)
                 {
-                    DialogResult result = MessageBox.Show(
-                    "В БД нет ни одной страны. Желаете добавить страну в базу данных?",
-                    "Сообщение",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information,
-                    MessageBoxDefaultButton.Button1);
+                    DialogResult result = MessageYesNo("В БД нет ни одной страны. Желаете добавить страну в базу данных?");
                     if (result == DialogResult.Yes)
                     {
-                        // Переходим на вкладку добавления новой страны
-                        tabControl1.SelectedTab = tabControl1.TabPages[1];
+                        tabControl1.SelectedTab = tabControl1.TabPages[2];
                     }
                 }
             }
-            else // Если вывести одну конкретную страну
+            else
             {
-                ds = WorkWithDB.GetCountries(textBox6.Text); // Вызываем метод поиска этой страны в БД
-                if (ds.Tables[0].Rows.Count == 0) // Если она не нашлась
+                ds = WorkWithDB.GetOneCountry(tbDb.Text);
+                if (ds.Tables[0].Rows.Count == 0)
                 {
-                    DialogResult result = MessageBox.Show(
-                    "Такой страны в БД не найдено. Желаете добавить её в базу данных?",
-                    "Сообщение",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information,
-                    MessageBoxDefaultButton.Button1);
+                    DialogResult result = MessageYesNo("Такой страны в БД не найдено.Желаете добавить её в базу данных ? ");
                     if (result == DialogResult.Yes)
                     {
-                        // Переходим на вкладку добавления новой страны
-                        tabControl1.SelectedTab = tabControl1.TabPages[1];
-                        dataGridView2.Rows[0].Cells[0].Value = textBox6.Text; // Добавляем в таблицу название не найденной страны
+                        tabControl1.SelectedTab = tabControl1.TabPages[2];
+                        // Добавляем в раздел добавления название не найденной страны
+                        tableAddDb.Rows[0].Cells[0].Value = tbDb.Text;
                     }
                 }
             }
-            // Отображаем данные
-            dataGridView1.DataSource = ds.Tables[0];
+            tableGetDb.DataSource = ds.Tables[0];
         }
 
-        // Добавить новую запись в таблицу
+        // Кнопка - добавить новую запись в таблицу
         private void button3_Click(object sender, EventArgs e)
         {
             try
             {
-                // Получаем данные, введённые в таблицу
-                string name = Convert.ToString(dataGridView2.Rows[0].Cells[0].Value);
-                string code = Convert.ToString(dataGridView2.Rows[0].Cells[1].Value);
-                string city = Convert.ToString(dataGridView2.Rows[0].Cells[2].Value);
-                double area = double.Parse(Convert.ToString(dataGridView2.Rows[0].Cells[3].Value));
-                int population = int.Parse(Convert.ToString(dataGridView2.Rows[0].Cells[4].Value));
-                string region = Convert.ToString(dataGridView2.Rows[0].Cells[5].Value);
-                // Вызываем метод добавления/изменения страны, получаем кол-во редактированных строк
+                string name = Convert.ToString(tableAddDb.Rows[0].Cells[0].Value);
+                string code = Convert.ToString(tableAddDb.Rows[0].Cells[1].Value);
+                string city = Convert.ToString(tableAddDb.Rows[0].Cells[2].Value);
+                double area = (tableAddDb.Rows[0].Cells[3].Value != null) ? double.Parse(Convert.ToString(tableAddDb.Rows[0].Cells[3].Value)) : 0.0;
+                int population = (tableAddDb.Rows[0].Cells[4].Value != null) ? int.Parse(Convert.ToString(tableAddDb.Rows[0].Cells[4].Value)) : 0;
+                string region = Convert.ToString(tableAddDb.Rows[0].Cells[5].Value);
+
                 int changeRow = WorkWithDB.AddNewCountry(name, code, city, area, population, region);
-                // Выводим сообщения об успешном добавлении/изменении строки
-                MessageBox.Show(String.Format("Была изменена/добавлена {0} строка!", changeRow));
-                dataGridView2.Rows.Clear(); // Очищаем данные в таблице
-                dataGridView2.Rows.Add();
+
+                _ = MessageBox.Show(string.Format("Была изменена/добавлена {0} строка!", changeRow));
+                tableAddDb.Rows.Clear();
+                tableAddDb.Rows.Add();
             }
             catch (Exception ex)
             {
@@ -167,6 +166,84 @@ namespace CountiesDB
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+            }
+        }
+
+        // Кнопка - вывод стран с Api
+        private void btApi_Click(object sender, EventArgs e)
+        {
+            tableGetApi.Rows.Clear();
+            List<Country> countries = new List<Country>();
+            if (rbGetAllApi.Checked)
+            {
+                try
+                {
+                    countries = api.GetAllCountries();
+                }
+                catch
+                {
+                    MessageBox.Show("Ошибка! Возможно, у вас нет подключения к интернету, либо временно не работает Api");
+                }
+            }
+            else
+            {
+                try
+                {
+                    string name = tbApi.Text;
+                    countries = api.GetOneCountry(name);
+                    DialogResult result = MessageYesNo("Желаете добавить эту страну в БД?");
+                    if (result == DialogResult.Yes)
+                    {
+                        int changeRow = WorkWithDB.AddNewCountry(countries[0].Name, countries[0].NumericCode,
+                            countries[0].Capital, countries[0].Area, countries[0].Population, countries[0].Region);
+                        _ = MessageBox.Show(string.Format("Была изменена/добавлена {0} строка!", changeRow));
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show("Ошибка! Возможно, вы ошиблись при вводе страны. Перепроверьте введённый текст (он должен быть на английском языке)." +
+                        " Также может быть, что у вас нет подключения к интернету, либо временно не работает Api.");
+                }
+            }
+            if (countries.Count > 0)
+            {
+                for (int i = 0; i < countries.Count; i++)
+                {
+                    int rowNumber = tableGetApi.Rows.Add();
+                    tableGetApi.Rows[rowNumber].Cells[0].Value = countries[i].Name;
+                    tableGetApi.Rows[rowNumber].Cells[1].Value = countries[i].NumericCode;
+                    tableGetApi.Rows[rowNumber].Cells[2].Value = countries[i].Capital;
+                    tableGetApi.Rows[rowNumber].Cells[3].Value = countries[i].Area;
+                    tableGetApi.Rows[rowNumber].Cells[4].Value = countries[i].Population;
+                    tableGetApi.Rows[rowNumber].Cells[5].Value = countries[i].Region;
+                }
+            }
+            else
+            {
+                DialogResult result = MessageYesNo("С Api не получено стран. Желаете добавить страну в БД вручную?");
+                if (result == DialogResult.Yes)
+                {
+                    tabControl1.SelectedTab = tabControl1.TabPages[2];
+                    // Добавляем в раздел добавления название не найденной страны
+                    tableAddDb.Rows[0].Cells[0].Value = tbApi.Text;
+                }
+            }
+        }
+
+        // Выбран какой-то рб отвечающий за тип аутентификации 
+        private void rbSecWin_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rbSecWin.Checked)
+            {
+                tbConfigUserId.ReadOnly = true;
+                tbConfigPassword.ReadOnly = true;
+                tbConfigUserId.Clear();
+                tbConfigPassword.Clear();
+            }
+            else
+            {
+                tbConfigUserId.ReadOnly = false;
+                tbConfigPassword.ReadOnly = false;
             }
         }
     }
