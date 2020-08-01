@@ -1,4 +1,5 @@
-﻿using CountiesDB.Model;
+﻿using CountiesDB.Logic;
+using CountiesDB.Model;
 using CountiesDB.Repositories;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,14 @@ namespace CountiesDB
 {
     public partial class Form1 : Form
     {
-        WorkWithApi api = new WorkWithApi();
+        ApiHelper api = new ApiHelper();
+        FormLogic logic = new FormLogic();
         public Form1()
         {
             InitializeComponent();
             // Выводим на раздел настроек значения по умолчанию
-            tbConfigServ.Text = WorkWithDB.Server;
-            tbConfigBd.Text = WorkWithDB.DataBase;
+            tbConfigServ.Text = DataBaseHelper.Server;
+            tbConfigBd.Text = DataBaseHelper.DataBase;
             rbSecWin.Checked = true;
             tbConfigUserId.ReadOnly = true;
             tbConfigPassword.ReadOnly = true;
@@ -25,11 +27,11 @@ namespace CountiesDB
             rbGetAllDb.Checked = true;
             rbGetAllApi.Checked = true;
             // Настраиваем таблицы
-            TableConfig(tableGetDb);
-            TableConfig(tableAddDb);
-            TableConfig(tableGetApi);
-            AnotherTableConfig(tableGetApi);
-            AnotherTableConfig(tableAddDb);
+            SetupTable(tableGetDb);
+            SetupTable(tableAddDb);
+            SetupTable(tableGetApi);
+            SetupAnotherTable(tableGetApi);
+            SetupAnotherTable(tableAddDb);
             tableAddDb.RowCount = 1;
             tableAddDb.Height = tableAddDb.ColumnHeadersHeight + tableAddDb.Rows[0].Height;
             tableAddDb.ReadOnly = false;
@@ -44,22 +46,15 @@ namespace CountiesDB
                 "Добавление страны происходит в разделе 'Добавить запись', где необходимо ввести все параметры страны (площадь - вещественной число, население - целое) " +
                 "после чего нажать клавишу добавить. Если такая страна уже есть, то её данные обновятся.\n\n\n" +
                 "Разработчик: Денисов Дмитрий Сергеевич.";
-            ConnectionStatus();
+            PrintConnectionStatus();
         }
 
-        private async void ConnectionStatus()
+        private async void PrintConnectionStatus()
         {
-            if (await Task.Run(() => WorkWithDB.TryConnection()))
-            {
-                lbStatus.Text = "Статус соединения: доступно";
-            }
-            else
-            {
-                lbStatus.Text = "Статус соединения: недоступно";
-            }
+            lbStatus.Text = (await Task.Run(() => logic.TestConnection()));
         }
 
-        private void TableConfig(DataGridView table)
+        private void SetupTable(DataGridView table)
         {
             table.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             table.AllowUserToResizeColumns = true;
@@ -72,7 +67,7 @@ namespace CountiesDB
             table.ColumnHeadersVisible = true;
         }
 
-        private void AnotherTableConfig(DataGridView table)
+        private void SetupAnotherTable(DataGridView table)
         {
             table.ColumnCount = 6;
             table.Columns[0].Name = "Название";
@@ -84,7 +79,7 @@ namespace CountiesDB
         }
 
         /// <returns>Вовзращает выбранную кнопку</returns>
-        private DialogResult MessageYesNo(string message)
+        private DialogResult GetMessageYesNo(string message)
         {
             return MessageBox.Show(
                     message,
@@ -97,45 +92,21 @@ namespace CountiesDB
         // Кнопка - применить настройки к соединению с БД
         private void button1_Click(object sender, EventArgs e)
         {
-            if (rbSecWin.Checked)
-            {
-                WorkWithDB.UpdateConnection(tbConfigServ.Text, tbConfigBd.Text, "True");
-            }
-            else
-            {
-                WorkWithDB.UpdateConnection(tbConfigServ.Text, tbConfigBd.Text, "False", tbConfigUserId.Text, tbConfigPassword.Text);
-            }
-            ConnectionStatus();
+            logic.ApplySettings(rbSecWin.Checked, tbConfigServ.Text, tbConfigBd.Text, tbConfigUserId.Text, tbConfigPassword.Text);
+            PrintConnectionStatus();
         }
 
-        // Ryjgrf - выполнить вывод данных из БД
+        // Кнопка - выполнить вывод данных из БД
         private void button2_Click(object sender, EventArgs e)
         {
-            DataSet ds;
-            if (rbGetAllDb.Checked)
+            DataSet ds = logic.GetDataFromDb(rbGetAllDb.Checked, tbDb.Text);
+            if (ds.Tables[0].Rows.Count == 0)
             {
-                ds = WorkWithDB.GetAllCountries();
-                if (ds.Tables[0].Rows.Count == 0)
+                DialogResult result = GetMessageYesNo("Такой страны в БД не найдено.Желаете добавить её в базу данных ? ");
+                if (result == DialogResult.Yes)
                 {
-                    DialogResult result = MessageYesNo("В БД нет ни одной страны. Желаете добавить страну в базу данных?");
-                    if (result == DialogResult.Yes)
-                    {
-                        tabControl1.SelectedTab = tabControl1.TabPages[2];
-                    }
-                }
-            }
-            else
-            {
-                ds = WorkWithDB.GetOneCountry(tbDb.Text);
-                if (ds.Tables[0].Rows.Count == 0)
-                {
-                    DialogResult result = MessageYesNo("Такой страны в БД не найдено.Желаете добавить её в базу данных ? ");
-                    if (result == DialogResult.Yes)
-                    {
-                        tabControl1.SelectedTab = tabControl1.TabPages[2];
-                        // Добавляем в раздел добавления название не найденной страны
-                        tableAddDb.Rows[0].Cells[0].Value = tbDb.Text;
-                    }
+                    tabControl1.SelectedTab = tabControl1.TabPages[2];
+                    tableAddDb.Rows[0].Cells[0].Value = tbDb.Text;
                 }
             }
             tableGetDb.DataSource = ds.Tables[0];
@@ -153,7 +124,7 @@ namespace CountiesDB
                 int population = (tableAddDb.Rows[0].Cells[4].Value != null) ? int.Parse(Convert.ToString(tableAddDb.Rows[0].Cells[4].Value)) : 0;
                 string region = Convert.ToString(tableAddDb.Rows[0].Cells[5].Value);
 
-                int changeRow = WorkWithDB.AddNewCountry(name, code, city, area, population, region);
+                int changeRow = DataBaseHelper.AddOrUpdateValue(name, code, city, area, population, region);
 
                 _ = MessageBox.Show(string.Format("Была изменена/добавлена {0} строка!", changeRow));
                 tableAddDb.Rows.Clear();
@@ -191,10 +162,10 @@ namespace CountiesDB
                 {
                     string name = tbApi.Text;
                     countries = api.GetOneCountry(name);
-                    DialogResult result = MessageYesNo("Желаете добавить эту страну в БД?");
+                    DialogResult result = GetMessageYesNo("Желаете добавить эту страну в БД?");
                     if (result == DialogResult.Yes)
                     {
-                        int changeRow = WorkWithDB.AddNewCountry(countries[0].Name, countries[0].NumericCode,
+                        int changeRow = DataBaseHelper.AddOrUpdateValue(countries[0].Name, countries[0].NumericCode,
                             countries[0].Capital, countries[0].Area, countries[0].Population, countries[0].Region);
                         _ = MessageBox.Show(string.Format("Была изменена/добавлена {0} строка!", changeRow));
                     }
@@ -220,7 +191,7 @@ namespace CountiesDB
             }
             else
             {
-                DialogResult result = MessageYesNo("С Api не получено стран. Желаете добавить страну в БД вручную?");
+                DialogResult result = GetMessageYesNo("С Api не получено стран. Желаете добавить страну в БД вручную?");
                 if (result == DialogResult.Yes)
                 {
                     tabControl1.SelectedTab = tabControl1.TabPages[2];

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace CountiesDB.Repositories
 {
-    public class WorkWithApi
+    public class ApiHelper
     {
         // Ссылка на получение всех стран с Api
         private string mainApiUrl = "https://restcountries.eu/rest/v2";
@@ -22,12 +22,12 @@ namespace CountiesDB.Repositories
 
         public List<Country> GetOneCountry(string name)
         {
-            string response = GetResponse(OneCountryUrl(name));
+            string response = GetResponse(GetOneCountryUrl(name));
             countries = JsonConvert.DeserializeObject<List<Country>>(response);
             return countries;
         }
 
-        private string OneCountryUrl(string name)
+        private string GetOneCountryUrl(string name)
         {
             return mainApiUrl + "/name/" + name;
         }

@@ -55,11 +55,12 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logic\FormLogic.cs" />
     <Compile Include="Model\Country.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repositories\WorkWithApi.cs" />
-    <Compile Include="Repositories\WorkWithDB.cs" />
+    <Compile Include="Repositories\ApiHelper.cs" />
+    <Compile Include="Repositories\DataBaseHelper.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

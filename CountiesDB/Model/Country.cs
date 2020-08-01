@@ -1,8 +1,5 @@
 ﻿namespace CountiesDB.Model
 {
-    /// <summary>
-    /// Класс для описания страны
-    /// </summary>
     public class Country
     {
         public string Name { get; set; }
